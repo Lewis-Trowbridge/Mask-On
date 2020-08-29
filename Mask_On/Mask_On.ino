@@ -1,5 +1,7 @@
 #include <Adafruit_CircuitPlayground.h>
 #define TOTAL 20
+#define CAPTURE_MILLISECONDS 50
+#define COLOUR_SHIFT_SECONDS 2
 
 
 void setup() {
@@ -16,13 +18,19 @@ void setup() {
 uint8_t samples[TOTAL];
 uint8_t counter = 0;
 float averagePressure = 0;
-  uint8_t r = 68;
-  uint8_t g = 92;
-  uint8_t b = 171;
+uint8_t rGoal = 0;
+uint8_t gGoal = 0;
+uint8_t bGoal = 0;
+float rCurrent = 0;
+float gCurrent = 0;
+float bCurrent = 0;
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  float currentPressure = CircuitPlayground.mic.soundPressureLevel(50);
+  // Generating random colours 
+
+  
+  // Capturing sound pressure and updating the running average to acclimate to current noise levels
+  float currentPressure = CircuitPlayground.mic.soundPressureLevel(CAPTURE_MILLISECONDS);
   samples[counter] = (uint8_t)currentPressure;
   counter++;
   counter = counter % TOTAL;
@@ -31,6 +39,8 @@ void loop() {
     sampleTotal += samples[i];
   }
   uint8_t sampleAverage = sampleTotal / TOTAL;
+
+  
   if (currentPressure > sampleAverage + 10){
     uint8_t brightness = (uint8_t)(currentPressure - sampleAverage);
     CircuitPlayground.strip.setBrightness(brightness);
@@ -39,7 +49,7 @@ void loop() {
     CircuitPlayground.strip.setBrightness(0);
   }
   for (int i=0; i<10; i++){
-    CircuitPlayground.strip.setPixelColor(i, r, g, b);
+    CircuitPlayground.strip.setPixelColor(i, (uint8_t)rCurrent, (uint8_t)gCurrent, (uint8_t)bCurrent);
   }
   CircuitPlayground.strip.show();
   
