@@ -1,7 +1,7 @@
 #include <Adafruit_CircuitPlayground.h>
 #define TOTAL 20
 #define CAPTURE_MILLISECONDS 50
-#define COLOUR_SHIFT_SECONDS 2
+#define COLOUR_SHIFT_SECONDS 4
 
 
 void setup() {
@@ -18,16 +18,28 @@ void setup() {
 uint8_t samples[TOTAL];
 uint8_t counter = 0;
 float averagePressure = 0;
-uint8_t rGoal = 0;
-uint8_t gGoal = 0;
-uint8_t bGoal = 0;
-float rCurrent = 0;
-float gCurrent = 0;
-float bCurrent = 0;
+uint8_t rgbGoals[3];
+float rgbCurrent[3];
+float rgbShift[3];
 
 void loop() {
   // Generating random colours 
+  // If the current colours have all met their goals
+  if ((uint8_t)rgbCurrent[0] == rgbGoals[0] && (uint8_t)rgbCurrent[1] == rgbGoals[1] == (uint8_t)rgbCurrent[2] == rgbGoals[2]){
+    // Generate random numbers from 0 to 255 for R, G and B
+    for (int i=0; i<3; i++){
+      rgbGoals[i] = (uint8_t)random(0, 255);
+    }
+    for (int i=0; i<3; i++){
+      // Calculate the amount needed to shift uniformly every time a new sound pressure is captured, which is what the loop hangs on, for each colour
+      rgbShift[i] = (rgbGoals[i] - rgbCurrent[i]) / ((COLOUR_SHIFT_SECONDS * 1000) / CAPTURE_MILLISECONDS);
+    }
+  }
 
+  //Shifting current colours
+  for (int i=0; i<3; i++){
+    rgbCurrent[i] += rgbShift[i];
+  }
   
   // Capturing sound pressure and updating the running average to acclimate to current noise levels
   float currentPressure = CircuitPlayground.mic.soundPressureLevel(CAPTURE_MILLISECONDS);
@@ -41,7 +53,7 @@ void loop() {
   uint8_t sampleAverage = sampleTotal / TOTAL;
 
   
-  if (currentPressure > sampleAverage + 10){
+  if (currentPressure > sampleAverage + 5){
     uint8_t brightness = (uint8_t)(currentPressure - sampleAverage);
     CircuitPlayground.strip.setBrightness(brightness);
   }
@@ -49,7 +61,7 @@ void loop() {
     CircuitPlayground.strip.setBrightness(0);
   }
   for (int i=0; i<10; i++){
-    CircuitPlayground.strip.setPixelColor(i, (uint8_t)rCurrent, (uint8_t)gCurrent, (uint8_t)bCurrent);
+    CircuitPlayground.strip.setPixelColor(i, (uint8_t)rgbCurrent[0], (uint8_t)rgbCurrent[1], (uint8_t)rgbCurrent[2]);
   }
   CircuitPlayground.strip.show();
   
