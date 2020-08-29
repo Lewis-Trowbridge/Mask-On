@@ -1,7 +1,7 @@
 #include <Adafruit_CircuitPlayground.h>
 #define TOTAL 20
 #define CAPTURE_MILLISECONDS 50
-#define COLOUR_SHIFT_SECONDS 4
+#define COLOUR_SHIFT_SECONDS 2
 
 
 void setup() {
@@ -9,10 +9,7 @@ void setup() {
   CircuitPlayground.begin();
   CircuitPlayground.setBrightness(255);
   CircuitPlayground.clearPixels();
-  Serial.begin(9600);
-  if (!Serial) {
-
-  }
+  seedRandom();
 }
 
 uint8_t samples[TOTAL];
@@ -28,7 +25,7 @@ void loop() {
   if ((uint8_t)round(rgbCurrent[0]) == rgbGoals[0] && (uint8_t)round(rgbCurrent[1]) == rgbGoals[1] && (uint8_t)round(rgbCurrent[2]) == rgbGoals[2]) {
     // Generate random numbers from 0 to 255 for R, G and B
     for (int i = 0; i < 3; i++) {
-      rgbGoals[i] = (uint8_t)random(0, 255);
+      rgbGoals[i] = (uint8_t)rand() % 256;
     }
     for (int i = 0; i < 3; i++) {
       // Calculate the amount needed to shift uniformly every time a new sound pressure is captured, which is what the loop hangs on, for each colour
@@ -64,5 +61,16 @@ void loop() {
     CircuitPlayground.strip.setPixelColor(i, (uint8_t)rgbCurrent[0], (uint8_t)rgbCurrent[1], (uint8_t)rgbCurrent[2]);
   }
   CircuitPlayground.strip.show();
+}
 
+void seedRandom(){
+  delay(100);
+  int analog1 = analogRead(A0);
+  int analog2 = analogRead(A4);
+  int analog3 = analogRead(A5);
+  int analog4 = analogRead(A7);
+  int analog5 = analogRead(A9);
+  int analog6 = analogRead(A10);
+  int analog7 = analogRead(A11);
+  srand(analog1 * analog2 * analog3 * analog4 * analog5 * analog6 * analog7);
 }
